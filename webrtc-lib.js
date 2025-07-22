@@ -7,9 +7,9 @@ class P2PConnection {
         this.onMessageCallback = null;
         this.onConnectionStateChangeCallback = null;
 
-        this.peerConnection.onicecandidate = event => {
-            // Candidates are included in the offer/answer SDP
-        };
+        // This onicecandidate handler is crucial for robust ICE gathering.
+        // It will be overwritten in createOffer/createAnswer to handle the promise resolution.
+        this.peerConnection.onicecandidate = null;
 
         this.peerConnection.onconnectionstatechange = () => {
             if (this.onConnectionStateChangeCallback) {
@@ -46,37 +46,46 @@ class P2PConnection {
     }
 
     async createOffer() {
+        // This promise will resolve when the browser has finished gathering ICE candidates.
+        const iceGatheringPromise = new Promise(resolve => {
+            this.peerConnection.onicecandidate = (event) => {
+                // The browser fires a final candidate event with a null candidate when it's finished.
+                if (event.candidate === null) {
+                    resolve();
+                }
+            };
+        });
+
         this.dataChannel = this.peerConnection.createDataChannel('sendChannel');
         this.setupDataChannel();
 
         const offer = await this.peerConnection.createOffer();
         await this.peerConnection.setLocalDescription(offer);
 
-        return new Promise(resolve => {
-            // Wait for ICE gathering to complete
-            this.peerConnection.onicegatheringstatechange = () => {
-                if (this.peerConnection.iceGatheringState === 'complete') {
-                    resolve(JSON.stringify(this.peerConnection.localDescription));
-                }
-            };
-        });
+        // Wait for the ICE gathering to complete *before* returning the offer.
+        await iceGatheringPromise;
+        return JSON.stringify(this.peerConnection.localDescription);
     }
 
     async createAnswer(offerSdp) {
+        // This promise will resolve when the browser has finished gathering ICE candidates.
+        const iceGatheringPromise = new Promise(resolve => {
+            this.peerConnection.onicecandidate = (event) => {
+                if (event.candidate === null) {
+                    resolve();
+                }
+            };
+        });
+
         const offer = JSON.parse(offerSdp);
         await this.peerConnection.setRemoteDescription(offer);
 
         const answer = await this.peerConnection.createAnswer();
         await this.peerConnection.setLocalDescription(answer);
 
-        return new Promise(resolve => {
-            // Wait for ICE gathering to complete
-            this.peerConnection.onicegatheringstatechange = () => {
-                if (this.peerConnection.iceGatheringState === 'complete') {
-                    resolve(JSON.stringify(this.peerConnection.localDescription));
-                }
-            };
-        });
+        // Wait for the ICE gathering to complete *before* returning the answer.
+        await iceGatheringPromise;
+        return JSON.stringify(this.peerConnection.localDescription);
     }
 
     async setAnswer(answerSdp) {
