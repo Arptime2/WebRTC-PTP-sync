@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebRTC P2P Test</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <h1>WebRTC Peer-to-Peer Test</h1>
+
+    <!-- SECTION 1: SAME PAGE TEST -->
+    <fieldset>
+        <legend><h2>Option 1: Same-Page Automated Test</h2></legend>
+        <div class="container">
+            <button id="setup-connection">1. Create Connection</button>
+        </div>
+        <div class="container">
+            <!-- Peer 1 -->
+            <div class="peer-control">
+                <h3>Peer 1 (on this page)</h3>
+                <div id="peer1-status">Status: Disconnected</div>
+                <div class="message-box">
+                    <div class="messages" id="peer1-messages"></div>
+                    <input type="text" id="peer1-message-input" placeholder="Enter message">
+                    <button id="peer1-send-message">Send to Peer 2</button>
+                </div>
+            </div>
+            <!-- Peer 2 -->
+            <div class="peer-control">
+                <h3>Peer 2 (on this page)</h3>
+                <div id="peer2-status">Status: Disconnected</div>
+                <div class="message-box">
+                    <div class="messages" id="peer2-messages"></div>
+                    <input type="text" id="peer2-message-input" placeholder="Enter message">
+                    <button id="peer2-send-message">Send to Peer 1</button>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <hr>
+
+    <!-- SECTION 2: CROSS-TAB/MANUAL TEST -->
+    <fieldset>
+        <legend><h2>Option 2: Cross-Tab/Manual Test</h2></legend>
+        <p>Use these controls to connect to a peer in another browser tab or on another computer on the same network.</p>
+        <div class="container">
+            <div class="peer-control">
+                <h3>This Peer</h3>
+                <div id="manual-status">Status: Disconnected</div>
+                <div class="message-box">
+                    <div class="messages" id="manual-messages"></div>
+                    <input type="text" id="manual-message-input" placeholder="Enter message">
+                    <button id="manual-send-message">Send Message</button>
+                </div>
+            </div>
+            <div class="peer-control">
+                <h3>Connection Steps</h3>
+                <!-- Step 1: Create Offer -->
+                <label for="offer-sdp">1. Create Offer:</label>
+                <button id="create-offer">Create Offer</button>
+                <textarea id="offer-sdp" placeholder="Offer SDP will appear here. Copy this to the other peer." readonly></textarea>
+                
+                <!-- Step 2: Paste Offer & Create Answer -->
+                <label for="offer-sdp-input">2. Paste Offer from other peer here:</label>
+                <textarea id="offer-sdp-input" placeholder="Paste Offer SDP from other peer."></textarea>
+                <button id="create-answer">Create Answer</button>
+                <textarea id="answer-sdp" placeholder="Answer SDP will appear here. Copy this to the other peer." readonly></textarea>
+
+                <!-- Step 3: Paste Answer -->
+                <label for="final-answer-sdp-input">3. Paste Answer from other peer here:</label>
+                <textarea id="final-answer-sdp-input" placeholder="Paste Answer SDP from other peer."></textarea>
+                <button id="set-answer">Set Answer & Connect</button>
+            </div>
+        </div>
+    </fieldset>
+
+    <script src="webrtc-lib.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
